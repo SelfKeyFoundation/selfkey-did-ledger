@@ -1,2 +1,2 @@
-# selfkey-identity-ethereum
+# selfkey-identity
 Smart contracts supporting SelfKey identity platform
