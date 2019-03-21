@@ -2,25 +2,23 @@ pragma solidity ^0.5.4;
 
 import "./ERC725.sol";
 
-contract ProxyAccount is ERC725 {
-    
+contract IdentityProxy is ERC725 {
+    address owner;
     uint256 constant OPERATION_CALL = 0;
     uint256 constant OPERATION_CREATE = 1;
     bytes32 constant KEY_OWNER = 0x0000000000000000000000000000000000000000000000000000000000000000;
 
     mapping(bytes32 => bytes32) store;
-    
-    
-    constructor(address _owner) public {
-        store[KEY_OWNER] = toBytes32(_owner);
-    }
 
+    constructor(address _owner) public {
+        owner = _owner;
+    }
 
     modifier onlyOwner() {
-        require(toBytes32(msg.sender) == store[KEY_OWNER], "only-owner-allowed");
+        require(msg.sender == owner, "only-owner-allowed");
         _;
     }
-    
+
     function toAddress(bytes32 a) internal pure returns (address b){
        assembly {
             mstore(0, a)
@@ -28,7 +26,7 @@ contract ProxyAccount is ERC725 {
         }
        return b;
     }
-    
+
     function toBytes32(address a) internal pure returns (bytes32 b){
        assembly {
             mstore(0, a)
@@ -36,10 +34,10 @@ contract ProxyAccount is ERC725 {
         }
        return b;
     }
-    
+
     // ----------------
     // Public functions
-    
+
     function () external payable {}
 
     function getData(bytes32 _key) external view returns (bytes32 _value) {
