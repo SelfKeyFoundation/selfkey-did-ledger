@@ -1,0 +1,37 @@
+{
+  "name": "identity-contracts",
+  "version": "0.1.0",
+  "description": "Smart contracts that implement SelfKey DID and verifiable credentials",
+  "author": "Carlos Bruguera <carlos@selfkey.org>",
+  "keywords": [
+    "identity",
+    "DID",
+    "claims",
+    "decentralized"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SelfKeyFoundation/selfkey-identity.git"
+  },
+  "homepage": "https://github.com/SelfKeyFoundation/selfkey-identity#readme",
+  "bugs": {
+    "url": "https://github.com/SelfKeyFoundation/selfkey-identity/issues"
+  },
+  "main": "truffle-config.js",
+  "scripts": {
+    "test": "truffle test",
+    "test:cov": "solidity-coverage",
+    "lint:sol": "solhint contracts/**/*.sol"
+  },
+  "devDependencies": {
+    "solhint": "^1.5.1",
+    "solidity-coverage": "^0.6.0-beta.3",
+    "truffle-hdwallet-provider": "^1.0.5",
+    "zos-lib": "^2.2.2"
+  },
+  "dependencies": {
+    "ethereumjs-util": "^6.1.0",
+    "openzeppelin-solidity": "^2.2.0",
+    "truffle": "^5.0.8"
+  }
+}
