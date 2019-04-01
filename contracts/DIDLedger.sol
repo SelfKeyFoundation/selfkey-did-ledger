@@ -1,15 +1,13 @@
 pragma solidity ^0.5.4;
 
-import "openzeppelin-solidity/contracts/access/roles/WhitelistedRole.sol";
 
 /**
  * @title DIDLedger
  * @dev DID Ledger for the SelfKey DID method.
- * Only whitelisted addresses can add DIDs. Only DID controllers (owners) can update or delete.
  * A DID is controlled by their creator address by default, but control can be assigned to a
  * different adddress by their current controller.
  */
-contract DIDLedger is WhitelistedRole {
+contract DIDLedger {
 
     struct DID {
         address controller;
@@ -21,13 +19,18 @@ contract DIDLedger is WhitelistedRole {
     mapping(bytes32 => DID) public dids;
     uint256 public nonce = 0;
 
-    event CreatedDID(bytes32 id, address issuedBy, uint256 datetime);
-    event UpdatedDID(bytes32 id, uint256 datetime);
-    event DeletedDID(bytes32 id, uint256 datetime);
-    event ChangedDIDController(bytes32 id, address newController, uint256 datetime);
+    event CreatedDID(bytes32 id, address controller, uint256 datetime);
+    event UpdatedDID(bytes32 id, address controller, uint256 datetime);
+    event DeletedDID(bytes32 id, address controller, uint256 datetime);
+    event ChangedDIDController(
+        bytes32 id,
+        address oldController,
+        address newController,
+        uint256 datetime
+    );
 
     modifier onlyController(bytes32 id) {
-        require(dids[id].controller == msg.sender, "caller has no control of this DID");
+        require(dids[id].controller == msg.sender, "sender has no control of this DID");
         _;
     }
 
@@ -36,18 +39,19 @@ contract DIDLedger is WhitelistedRole {
      * @param _address — The address to be the controller of the DID
      * @param _data — Arbitrary 32-byte data field. Can be later changed by their owner.
      */
-    function createDID(address _address, bytes32 _data)
+    function createDID(bytes32 _data)
         public
         onlyWhitelisted
         returns (bytes32)
     {
-        bytes32 _hash = keccak256(abi.encodePacked(_address));
+        bytes32 _hash = keccak256(abi.encodePacked(_address, nonce));
         require(dids[_hash].created == 0, "DID already exists");
 
-        dids[_hash].controller = _address;
+        dids[_hash].controller = msg.sender;
         dids[_hash].created = now;
         dids[_hash].updated = now;
         dids[_hash].data = _data;
+        nonce = nonce + 1;
 
         emit CreatedDID(_hash, msg.sender, dids[_hash].created);
         return _hash;
@@ -61,12 +65,10 @@ contract DIDLedger is WhitelistedRole {
     function updateDID(bytes32 id, bytes32 _data)
         public
         onlyController(id)
-        returns (bool)
     {
         dids[id].data = _data;
         dids[id].updated = now;
-        emit UpdatedDID(id, dids[id].updated);
-        return true;
+        emit UpdatedDID(id, msg.sender, dids[id].updated);
     }
 
     /**
@@ -76,11 +78,9 @@ contract DIDLedger is WhitelistedRole {
     function deleteDID(bytes32 id)
         public
         onlyController(id)
-        returns (bool)
     {
         delete dids[id];
-        emit DeletedDID(id, now);
-        return true;
+        emit DeletedDID(id, msg.sender, now);
     }
 
     /**
@@ -91,14 +91,16 @@ contract DIDLedger is WhitelistedRole {
     function changeController(bytes32 id, address newController)
         public
         onlyController(id)
-        returns (bool)
     {
         dids[id].controller = newController;
         dids[id].updated = now;
-        emit ChangedDIDController(id, newController, dids[id].updated);
-        return true;
+        emit ChangedDIDController(id, msg.sender, newController, dids[id].updated);
     }
 
+    /**
+     * @dev Returns corresponding controller for given DID
+     * @param id — The identifier (DID) to be resolved
+     */
     function resolveDID(bytes32 id)
         public
         view
