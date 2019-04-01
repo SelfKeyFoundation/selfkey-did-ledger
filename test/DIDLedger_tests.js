@@ -5,13 +5,18 @@ const util = require("ethereumjs-util")
 
 const DIDLedger = artifacts.require("./DIDLedger.sol")
 
-// HOW TO ASSIGN 32 BYTE VALUES
-//const valueBytes = web3.utils.hexToBytes(util.bufferToHex(util.setLengthLeft(21, 32)))
-//const keyBytes = web3.utils.hexToBytes(util.bufferToHex(util.setLengthLeft("age", 32)))
 const zeroBytes = util.bufferToHex(util.setLengthLeft(0, 32))
 
 contract("DIDLedger", accounts => {
-  const [admin1, admin2, user1, user2, user3] = accounts.slice(0)
+  const [
+    admin1,
+    admin2,
+    whitelisted1,
+    whitelisted2,
+    whitelisted3,
+    user1,
+    user2,
+    user3] = accounts.slice(0)
   const now = new Date().getTime() / 1000
   let user1DID
 
@@ -22,9 +27,8 @@ contract("DIDLedger", accounts => {
     assert.isTrue(await ledger.isWhitelistAdmin.call(admin1))
   })
 
-
   context("Admin management", () => {
-    it("non admins cannot add new admins", async () => {
+    /*it("non admins cannot add new admins", async () => {
       await assertThrows(ledger.addWhitelistAdmin(user2, { from: user1 }))
     })
 
@@ -36,13 +40,35 @@ contract("DIDLedger", accounts => {
     it("admins can renounce to their status", async () => {
       await ledger.renounceWhitelistAdmin({ from: admin2 })
       assert.isFalse(await ledger.isWhitelistAdmin.call(admin2))
+    })*/
+
+    it("(only) admins can add whitelisted addresses", async () => {
+      assert.isFalse(await ledger.isWhitelisted(admin2))
+      await assertThrows(ledger.addWhitelisted(whitelisted1, { from: admin2 }))
+
+      await ledger.addWhitelisted(whitelisted1, { from: admin1 })
+      await ledger.addWhitelisted(whitelisted2, { from: admin1 })
+      await ledger.addWhitelisted(whitelisted3, { from: admin1 })
+      assert.isTrue(await ledger.isWhitelisted(whitelisted1))
+      assert.isTrue(await ledger.isWhitelisted(whitelisted2))
+      assert.isTrue(await ledger.isWhitelisted(whitelisted3))
     })
+
+    /*it("(only) admins can remove whitelisted addresses", async () => {
+      await assertThrows(ledger.removeWhitelisted(whitelisted2, { from: user2 }))
+      await ledger.removeWhitelisted(whitelisted2, { from: admin1 })
+    })
+
+    it("whitelisted can renounce to their status", async () => {
+      await ledger.renounceWhitelisted({ from: whitelisted3 })
+      assert.isFalse(await ledger.isWhitelisted.call(whitelisted3))
+    })*/
   })
 
   context("DID operations", () => {
-    it("admins (and only admins) can add create new DIDs", async () => {
-      await assertThrows(ledger.createDID(user2, zeroBytes, { from: user1 }))
-      const tx = await ledger.createDID(user1, zeroBytes, { from: admin1 })
+    it("(only) whitelisted can add create new DIDs", async () => {
+      await assertThrows(ledger.createDID(user1, zeroBytes, { from: user1 }))
+      const tx = await ledger.createDID(user1, zeroBytes, { from: whitelisted1 })
       const log = getLog(tx, "CreatedDID")
       user1DID = log.args.id
       const hash = util.bufferToHex(util.keccak256(user1))
@@ -53,11 +79,16 @@ contract("DIDLedger", accounts => {
       assert.equal(result.controller, user1)
     })
 
+    it("A DID can be resolved into their controller address", async () => {
+      const resultAddress = await ledger.resolveDID.call(user1DID)
+      assert.equal(resultAddress, user1)
+    })
+
     it("DIDs cannot be re-created", async () => {
       await assertThrows(ledger.createDID(user1, zeroBytes, { from: admin1 }))
     })
 
-    it("Identity owners (and only they) can update DID data", async () => {
+    it("(only) identity owners can update DID data", async () => {
       const data = util.bufferToHex(util.setLengthLeft("myData", 32))
       await assertThrows(ledger.updateDID(user1DID, data, { from: user2 }))
       await ledger.updateDID(user1DID, data, { from: user1 })
@@ -66,7 +97,7 @@ contract("DIDLedger", accounts => {
       assert.equal(result.data, data)
     })
 
-    it("Identity owners (and only they) can remove DIDs", async () => {
+    it("(only) identity owners can remove DIDs", async () => {
       await assertThrows(ledger.deleteDID(user1DID, { from: user2 }))
       await ledger.deleteDID(user1DID, { from: user1 })
 
@@ -74,8 +105,8 @@ contract("DIDLedger", accounts => {
       assert.equal(result.created, 0)
     })
 
-    it("Identity owners (and only they) can update transfer DID control", async () => {
-      let tx = await ledger.createDID(user2, zeroBytes, { from: admin1 })
+    it("(only) identity owners can update transfer DID control", async () => {
+      let tx = await ledger.createDID(user2, zeroBytes, { from: whitelisted1 })
       let log = getLog(tx, "CreatedDID")
       const user2DID = log.args.id
 
@@ -84,15 +115,8 @@ contract("DIDLedger", accounts => {
 
       await assertThrows(ledger.changeController(user2DID, user3, { from: admin1 }))
       tx = await ledger.changeController(user2DID, user3, { from: user2 })
-      log = getLog(tx, "ChangedDIDController")
-      const newController = log.args.newController
-      assert.equal(newController, user3)
-
-      didObj = await ledger.dids.call(user2DID)
-      assert.equal(didObj.controller, user3)
-
-
-
+      const newAddress = await ledger.resolveDID.call(user2DID)
+      assert.equal(newAddress, user3)
     })
   })
 })

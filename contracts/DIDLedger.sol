@@ -1,6 +1,6 @@
 pragma solidity ^0.5.4;
 
-import "openzeppelin-solidity/contracts/access/roles/WhitelistAdminRole.sol";
+import "openzeppelin-solidity/contracts/access/roles/WhitelistedRole.sol";
 
 /**
  * @title DIDLedger
@@ -9,7 +9,7 @@ import "openzeppelin-solidity/contracts/access/roles/WhitelistAdminRole.sol";
  * A DID is controlled by their creator address by default, but control can be assigned to a
  * different adddress by their current controller.
  */
-contract DIDLedger is WhitelistAdminRole {
+contract DIDLedger is WhitelistedRole {
 
     struct DID {
         address controller;
@@ -19,6 +19,7 @@ contract DIDLedger is WhitelistAdminRole {
     }
 
     mapping(bytes32 => DID) public dids;
+    uint256 public nonce = 0;
 
     event CreatedDID(bytes32 id, address issuedBy, uint256 datetime);
     event UpdatedDID(bytes32 id, uint256 datetime);
@@ -37,8 +38,8 @@ contract DIDLedger is WhitelistAdminRole {
      */
     function createDID(address _address, bytes32 _data)
         public
-        onlyWhitelistAdmin
-        returns (bool)
+        onlyWhitelisted
+        returns (bytes32)
     {
         bytes32 _hash = keccak256(abi.encodePacked(_address));
         require(dids[_hash].created == 0, "DID already exists");
@@ -49,7 +50,7 @@ contract DIDLedger is WhitelistAdminRole {
         dids[_hash].data = _data;
 
         emit CreatedDID(_hash, msg.sender, dids[_hash].created);
-        return true;
+        return _hash;
     }
 
     /**
@@ -79,6 +80,7 @@ contract DIDLedger is WhitelistAdminRole {
     {
         delete dids[id];
         emit DeletedDID(id, now);
+        return true;
     }
 
     /**
@@ -93,6 +95,15 @@ contract DIDLedger is WhitelistAdminRole {
     {
         dids[id].controller = newController;
         dids[id].updated = now;
-        emit ChangedDIDController(id, newController, now);
+        emit ChangedDIDController(id, newController, dids[id].updated);
+        return true;
+    }
+
+    function resolveDID(bytes32 id)
+        public
+        view
+        returns (address)
+    {
+        return dids[id].controller;
     }
 }

@@ -1,8 +1,16 @@
-// const HDWalletProvider = require('truffle-hdwallet-provider');
-// const infuraKey = "fj4jll3k.....";
-//
-// const fs = require('fs');
-// const mnemonic = fs.readFileSync(".secret").toString().trim();
+const HDWalletProvider = require('truffle-hdwallet-provider')
+const fs = require('fs');
+
+const infuraKey = "a0fb364d78a54a6d84a6edf550b9a411"
+const mainnetURL = "https://mainnet.infura.io/v3/" + infuraKey
+const ropstenURL = "https://ropsten.infura.io/v3/" + infuraKey
+//const providerUrlRopsten = "https://ropsten.infura.io/SYGRk61NUc3yN4NNRs60"
+
+const walletPath = "./local/wallet.json"
+const { mnemonic } = JSON.parse(fs.readFileSync(walletPath))
+
+const MainnetProvider = new HDWalletProvider(mnemonic, mainnetURL)
+const RopstenProvider = new HDWalletProvider(mnemonic, ropstenURL, 1)
 
 module.exports = {
   networks: {
@@ -15,12 +23,12 @@ module.exports = {
     development: {
       host: "127.0.0.1",     // Localhost (default: none)
       port: 8545,            // Standard Ethereum port (default: none)
-      network_id: "*",       // Any network (default: none)
+      network_id: "*"       // Any network (default: none)
     },
     coverage: {
       host: '127.0.0.1',
       port: 8545,
-      network_id: '*',
+      network_id: '*'
     },
 
     // Another network with more advanced options...
@@ -35,14 +43,15 @@ module.exports = {
 
     // Useful for deploying to a public network.
     // NB: It's important to wrap the provider as a function.
-    // ropsten: {
-      // provider: () => new HDWalletProvider(mnemonic, `https://ropsten.infura.io/${infuraKey}`),
-      // network_id: 3,       // Ropsten's id
-      // gas: 5500000,        // Ropsten has a lower block limit than mainnet
+    ropsten: {
+      provider: () => RopstenProvider,
+      network_id: 3,
+      gas: 5500000,
+      gasPrice: 5000000000, // 5 gwei
       // confirmations: 2,    // # of confs to wait between deployments. (default: 0)
       // timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
-      // skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
-    // },
+      skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
+    },
 
     // Useful for private networks
     // private: {
