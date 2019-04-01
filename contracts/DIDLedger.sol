@@ -13,7 +13,7 @@ contract DIDLedger {
         address controller;
         uint256 created;
         uint256 updated;
-        bytes32 data;
+        bytes data;
     }
 
     mapping(bytes32 => DID) public dids;
@@ -39,7 +39,7 @@ contract DIDLedger {
      * @param _address — The address to be the controller of the DID
      * @param _data — Arbitrary 32-byte data field. Can be later changed by their owner.
      */
-    function createDID(bytes32 _data)
+    function createDID(bytes _data)
         public
         onlyWhitelisted
         returns (bytes32)
@@ -62,7 +62,7 @@ contract DIDLedger {
      * @param id — The identifier (DID) to be updated
      * @param _data — Arbitrary 32-byte value to be assigned as data.
      */
-    function updateDID(bytes32 id, bytes32 _data)
+    function updateDID(bytes32 id, bytes _data)
         public
         onlyController(id)
     {
