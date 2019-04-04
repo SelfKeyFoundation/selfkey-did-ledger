@@ -21,7 +21,8 @@ contract DIDLedger {
 
     event CreatedDID(bytes32 id, address controller, bytes32 tag, uint256 datetime);
     event UpdatedDIDTag(bytes32 id, address controller, bytes32 tag, uint256 datetime);
-    event DeletedDIDData(bytes32 id, address controller, uint256 datetime);
+    //event UpdatedDIDData(bytes32 id, address controller, bytes32 tag, uint256 datetime);
+    event DeletedDID(bytes32 id, address controller, uint256 datetime);
     event ChangedDIDController(
         bytes32 id,
         address oldController,
@@ -35,23 +36,20 @@ contract DIDLedger {
     }
 
     /**
-     * @dev Register new DID. Only callable by whitelisted admins
-     * @param _address — The address to be the controller of the DID
-     * @param _data — Arbitrary 32-byte data field. Can be later changed by their owner.
+     * @dev Register new DID.
+     * @param _tag — Arbitrary 32-byte data field. Can be later changed by their owner.
      */
     function createDID(bytes32 _tag)
         public
-        onlyWhitelisted
         returns (bytes32)
     {
-        bytes32 _hash = keccak256(abi.encodePacked(_address, nonce));
-        require(dids[_hash].created == 0, "DID already exists");
+        bytes32 _hash = keccak256(abi.encodePacked(msg.sender, nonce));
 
         dids[_hash].controller = msg.sender;
         dids[_hash].created = now;
         dids[_hash].updated = now;
         dids[_hash].tag = _tag;
-        dids[_hash].data = _data;
+        //dids[_hash].data = _data;
         nonce = nonce + 1;
 
         emit CreatedDID(_hash, msg.sender, _tag, dids[_hash].created);
@@ -61,7 +59,7 @@ contract DIDLedger {
     /**
      * @dev Update DID tag. Only callable by DID controller.
      * @param id — The identifier (DID) to be updated
-     * @param _data — Arbitrary 32-byte value to be assigned as data.
+     * @param _tag — Arbitrary 32-byte value to be assigned as data.
      */
     function updateTag(bytes32 id, bytes32 _tag)
         public
@@ -95,5 +93,19 @@ contract DIDLedger {
         returns (address)
     {
         return dids[id].controller;
+    }
+
+    /**
+     * @dev Change controller address. Only callable by current DID controller.
+     * @param id — The identifier (DID) to be updated
+     * @param newController — New controller addresss
+     */
+    function changeController(bytes32 id, address newController)
+        public
+        onlyController(id)
+    {
+        dids[id].controller = newController;
+        dids[id].updated = now;
+        emit ChangedDIDController(id, msg.sender, newController, dids[id].updated);
     }
 }
