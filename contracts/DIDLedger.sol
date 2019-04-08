@@ -4,7 +4,7 @@ pragma solidity ^0.5.4;
 /**
  * @title DIDLedger
  * @dev DID Ledger for the SelfKey DID method.
- * A DID is controlled by their creator address by default, but control can be assigned to a
+ * A DID is controlled by their creator address by default, but control can be assigned to any
  * different adddress by their current controller.
  */
 contract DIDLedger {
@@ -13,22 +13,16 @@ contract DIDLedger {
         address controller;
         uint256 created;
         uint256 updated;
-        bytes32 tag;
+        bytes32 metadata;
     }
 
     mapping(bytes32 => DID) public dids;
     uint256 public nonce = 0;
 
-    event CreatedDID(bytes32 id, address controller, bytes32 tag, uint256 datetime);
-    event UpdatedDIDTag(bytes32 id, address controller, bytes32 tag, uint256 datetime);
-    //event UpdatedDIDData(bytes32 id, address controller, bytes32 tag, uint256 datetime);
-    event DeletedDID(bytes32 id, address controller, uint256 datetime);
-    event ChangedDIDController(
-        bytes32 id,
-        address oldController,
-        address newController,
-        uint256 datetime
-    );
+    event CreatedDID(bytes32 id, bytes32 metadata);
+    event DeletedDID(bytes32 id);
+    event SetMetadata(bytes32 id, bytes32 metadata);
+    event SetController(bytes32 id, address newController);
 
     modifier onlyController(bytes32 id) {
         require(dids[id].controller == msg.sender, "sender has no control of this DID");
@@ -37,9 +31,9 @@ contract DIDLedger {
 
     /**
      * @dev Register new DID.
-     * @param _tag — Arbitrary 32-byte data field. Can be later changed by their owner.
+     * @param _metadata — Arbitrary 32-byte data field. Can be later changed by their owner.
      */
-    function createDID(bytes32 _tag)
+    function createDID(bytes32 _metadata)
         public
         returns (bytes32)
     {
@@ -48,26 +42,25 @@ contract DIDLedger {
         dids[_hash].controller = msg.sender;
         dids[_hash].created = now;
         dids[_hash].updated = now;
-        dids[_hash].tag = _tag;
-        //dids[_hash].data = _data;
+        dids[_hash].metadata = _metadata;
         nonce = nonce + 1;
 
-        emit CreatedDID(_hash, msg.sender, _tag, dids[_hash].created);
+        emit CreatedDID(_hash, _metadata);
         return _hash;
     }
 
     /**
-     * @dev Update DID tag. Only callable by DID controller.
+     * @dev Update DID metadata. Only callable by DID controller.
      * @param id — The identifier (DID) to be updated
-     * @param _tag — Arbitrary 32-byte value to be assigned as data.
+     * @param _metadata — Arbitrary 32-byte value to be assigned as metadata.
      */
-    function updateTag(bytes32 id, bytes32 _tag)
+    function setMetadata(bytes32 id, bytes32 _metadata)
         public
         onlyController(id)
     {
-        dids[id].tag = _tag;
+        dids[id].metadata = _metadata;
         dids[id].updated = now;
-        emit UpdatedDIDTag(id, msg.sender, _tag, dids[id].updated);
+        emit SetMetadata(id, _metadata);
     }
 
     /**
@@ -79,15 +72,15 @@ contract DIDLedger {
         onlyController(id)
     {
         delete dids[id];
-        emit DeletedDID(id, msg.sender, now);
+        emit DeletedDID(id);
     }
 
 
     /**
      * @dev Returns corresponding controller for given DID
-     * @param id — The identifier (DID) to be resolved
+     * @param id — The identifier (DID) to be resolved to its controller address
      */
-    function resolveDID(bytes32 id)
+    function getController(bytes32 id)
         public
         view
         returns (address)
@@ -100,12 +93,12 @@ contract DIDLedger {
      * @param id — The identifier (DID) to be updated
      * @param newController — New controller addresss
      */
-    function changeController(bytes32 id, address newController)
+    function setController(bytes32 id, address newController)
         public
         onlyController(id)
     {
         dids[id].controller = newController;
         dids[id].updated = now;
-        emit ChangedDIDController(id, msg.sender, newController, dids[id].updated);
+        emit SetController(id, newController);
     }
 }
