@@ -9,16 +9,16 @@ The functionality for this method is provided by the `DIDLedger` smart contract 
 
 ## DID Scheme
 
-This method shall be identified with the name `key`. A SelfKey DID has the following format:
+This method shall be identified with the name `selfkey`. A SelfKey DID has the following format:
 
 ```
-did:key:<32 byte hexadecimal string>
+did:selfkey:<32 byte hexadecimal string>
 ```
 
 For example:
 
 ```
-did:key:0x58a9d3f14916f6ba75fa57032c4627497b62fa0105f60142b03c3ebab74b7e15
+did:selfkey:0x58a9d3f14916f6ba75fa57032c4627497b62fa0105f60142b03c3ebab74b7e15
 ```
 
 The `<32 byte hexadecimal string>` corresponds to a `keccak256` hash of an Ethereum address concatenated with a nonce as generated in the [DIDLedger contract](https://github.com/SelfKeyFoundation/selfkey-identity/blob/develop/contracts/DIDLedger.sol). Specifications for interacting with the ledger can be found at the [README](https://github.com/SelfKeyFoundation/selfkey-identity/blob/develop/README.md) file in the project repository.
@@ -66,13 +66,13 @@ This will generate the corresponding id-string and assign control to the caller 
 
 ### Read
 
-A DID resolver **MUST** be able to take a `did:key:<id>` string as an input and generate a JSON object providing all information necessary to authenticate and validate the given DID. The DID document is dynamically constructed from the data stored on the DID Ledger and other related contracts (e.g. ERC725). A DID resolved via this method should look like the following:
+A DID resolver **MUST** be able to take a `did:selfkey:<id>` string as an input and generate a JSON object providing all information necessary to authenticate and validate the given DID. The DID document is dynamically constructed from the data stored on the DID Ledger and other related contracts (e.g. ERC725). A DID resolved via this method should look like the following:
 
 
 ```js
 {
   '@context': 'https://w3id.org/did/v1',
-  id: 'did:key:0x58a9d3f14916f6ba75fa57032c4627497b62fa0105f60142b03c3...',
+  id: 'did:selfkey:0x58a9d3f14916f6ba75fa57032c4627497b62fa0105f60142b03c3...',
   contract: {
       type: 'ERC725',
       version: '2.7.0',
@@ -80,9 +80,9 @@ A DID resolver **MUST** be able to take a `did:key:<id>` string as an input and 
       createTxId: '0x1d1d899b81ca7731243ceec0421f87dd9910e034890c6b5305'
   },
   publicKey: [{
-   	id: 'did:key:0x7Be8076f4EA4A4AD08075C2508e481d6C946D12b#key-1',
+   	id: 'did:selfkey:0x7Be8076f4EA4A4AD08075C2508e481d6C946D12b#key-1',
    	type: 'Secp256k1VerificationKey2018',
-   	owner: 'did:key:0x58a9d3f14916f6ba75fa57032c4627497b62fa0105f603...',
+   	owner: 'did:selfkey:0x58a9d3f14916f6ba75fa57032c4627497b62fa0105f603...',
    	ethereumAddress: '0x7Be8076f4EA4A4AD08075C2508e481d6C946D12b'}],
 }
 ```
