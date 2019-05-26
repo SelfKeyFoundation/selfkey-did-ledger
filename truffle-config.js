@@ -4,7 +4,6 @@ const HDWalletProvider = require('truffle-hdwallet-provider')
 const fs = require('fs')
 
 const infuraKey = process.env["INFURA_KEY"]
-//const infuraKey = "a0fb364d78a54a6d84a6edf550b9a411"
 const mainnetURL = "https://mainnet.infura.io/v3/" + infuraKey
 const ropstenURL = "https://ropsten.infura.io/v3/" + infuraKey
 
