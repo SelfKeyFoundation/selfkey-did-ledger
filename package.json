@@ -1,7 +1,7 @@
 {
-  "name": "identity-contracts",
-  "version": "0.1.0",
-  "description": "Smart contracts that implement SelfKey DID and verifiable credentials",
+  "name": "selfkey-did-ledger",
+  "version": "1.0.0",
+  "description": "Smart contracts that implement SelfKey DID Ledger",
   "author": "Carlos Bruguera <carlos@selfkey.org>",
   "keywords": [
     "identity",
@@ -11,11 +11,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SelfKeyFoundation/selfkey-identity.git"
+    "url": "git+https://github.com/SelfKeyFoundation/selfkey-did-ledger.git"
   },
-  "homepage": "https://github.com/SelfKeyFoundation/selfkey-identity#readme",
+  "homepage": "https://github.com/SelfKeyFoundation/selfkey-did-ledger#readme",
   "bugs": {
-    "url": "https://github.com/SelfKeyFoundation/selfkey-identity/issues"
+    "url": "https://github.com/SelfKeyFoundation/selfkey-did-ledger/issues"
   },
   "main": "truffle-config.js",
   "scripts": {
@@ -24,13 +24,14 @@
     "lint:sol": "solhint contracts/**/*.sol"
   },
   "devDependencies": {
+    "dotenv": "^8.0.0",
     "solhint": "^1.5.1",
     "solidity-coverage": "^0.6.0-beta.3",
-    "truffle-hdwallet-provider": "^1.0.5"
+    "truffle-hdwallet-provider": "1.0.6",
+    "web3": "1.0.0-beta.37"
   },
   "dependencies": {
     "ethereumjs-util": "^6.1.0",
-    "openzeppelin-solidity": "^2.2.0",
-    "truffle": "^5.0.8"
+    "openzeppelin-solidity": "^2.2.0"
   }
 }
