@@ -1,5 +1,5 @@
 {
-  "name": "identity-contracts",
+  "name": "selfkey-identity",
   "version": "1.0.0",
   "description": "Smart contracts that implement SelfKey DID Ledger",
   "author": "Carlos Bruguera <carlos@selfkey.org>",
@@ -28,8 +28,7 @@
     "solhint": "^1.5.1",
     "solidity-coverage": "^0.6.0-beta.3",
     "truffle-hdwallet-provider": "1.0.6",
-    "web3": "1.0.0-beta.37",
-    "truffle": "5.0.8"
+    "web3": "1.0.0-beta.37"
   },
   "dependencies": {
     "ethereumjs-util": "^6.1.0",
