@@ -1,10 +1,12 @@
-const HDWalletProvider = require('truffle-hdwallet-provider')
-const fs = require('fs');
+require('dotenv').config()
 
-const infuraKey = "a0fb364d78a54a6d84a6edf550b9a411"
+const HDWalletProvider = require('truffle-hdwallet-provider')
+const fs = require('fs')
+
+const infuraKey = process.env["INFURA_KEY"]
+//const infuraKey = "a0fb364d78a54a6d84a6edf550b9a411"
 const mainnetURL = "https://mainnet.infura.io/v3/" + infuraKey
 const ropstenURL = "https://ropsten.infura.io/v3/" + infuraKey
-//const providerUrlRopsten = "https://ropsten.infura.io/SYGRk61NUc3yN4NNRs60"
 
 const walletPath = "./local/wallet.json"
 const { mnemonic } = JSON.parse(fs.readFileSync(walletPath))
@@ -52,6 +54,14 @@ module.exports = {
       // timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
       skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
     },
+    mainnet: {
+      provider: () => MainnetProvider,
+      network_id: 1,
+      //from: addresses[0],
+      gas: 5500000,
+      gasPrice: 10000000000,
+      skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
+    }
 
     // Useful for private networks
     // private: {
